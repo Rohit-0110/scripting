@@ -1,0 +1,104 @@
+#!/bin/bash
+
+# Check if the package is installed
+if dpkg -s <package_name> >/dev/null 2>&1; then
+    echo "Package <package_name> is installed"
+else
+    echo "Package <package_name> is not installed"
+fi
+
+
+
+#!/bin/bash
+
+# The name of the package to install
+package_name="package_name_here"
+
+# Install the package
+echo "Installing $package_name ..."
+sudo apt-get install $package_name
+
+
+#!/bin/bash
+
+# The name of the repository to add
+repo_name="ppa:repository_name_here"
+
+# The name of the package to install
+package_name="package_name_here"
+
+# Add the repository
+echo "Adding $repo_name ..."
+sudo add-apt-repository $repo_name
+sudo apt-get update
+
+# Install the package
+echo "Installing $package_name ..."
+sudo apt-get install $package_name
+
+
+#!/bin/bash
+
+# The name of the package to remove
+package_name="package_name_here"
+
+# Remove the package
+echo "Removing $package_name ..."
+sudo apt-get remove $package_name
+
+
+dpkg-query -l | grep package_name
+
+
+#!/bin/bash
+
+# Function to check if a package is installed
+function check_package {
+  echo "Enter the name of the package to check:"
+  read package_name
+  dpkg -s $package_name > /dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    echo "$package_name is installed."
+  else
+    echo "$package_name is not installed."
+  fi
+}
+
+# Function to install a package
+function install_package {
+  echo "Enter the name of the package to install:"
+  read package_name
+  echo "Installing $package_name ..."
+  sudo apt-get install $package_name
+}
+
+# Function to remove a package
+function remove_package {
+  echo "Enter the name of the package to remove:"
+  read package_name
+  echo "Removing $package_name ..."
+  sudo apt-get remove $package_name
+}
+
+# Main menu
+echo "Choose an option:"
+echo "1. Check if a package is installed"
+echo "2. Install a package"
+echo "3. Remove a package"
+read choice
+
+case $choice in
+  1)
+    check_package
+    ;;
+  2)
+    install_package
+    ;;
+  3)
+    remove_package
+    ;;
+  *)
+    echo "Invalid choice."
+    ;;
+esac
+

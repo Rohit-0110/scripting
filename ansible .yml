@@ -1,0 +1,131 @@
+---
+- name: Check if Nginx or httpd is installed
+  hosts: your_host
+  become: yes
+  tasks:
+  - name: Check if Nginx is installed
+    stat:
+      path: /usr/sbin/nginx
+    register: nginx_check
+  - name: Check if httpd is installed
+    stat:
+      path: /usr/sbin/apache2
+    register: httpd_check
+
+- name: Install Nginx or httpd if not installed
+  hosts: your_host
+  become: yes
+  tasks:
+  - name: Install Nginx if not installed
+    apt:
+      name: nginx
+      state: present
+    when: nginx_check.stat.exists == false
+  - name: Install httpd if not installed
+    apt:
+      name: apache2
+      state: present
+    when: httpd_check.stat.exists == false
+
+
+--------------------------------------------------------------------------------------
+
+---
+- name: Check and install nginx/httpd
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Check if nginx/httpd is installed
+      shell: "dpkg -l nginx || rpm -qa httpd"
+      register: installed_packages
+      ignore_errors: yes
+
+    - name: Install nginx/httpd
+      apt:
+        name: nginx
+        state: present
+      when: "'nginx' not in installed_packages.stdout"
+
+    - name: Install httpd
+      yum:
+        name: httpd
+        state: present
+      when: "'httpd' not in installed_packages.stdout"
+
+
+-------------------------------------------------------------------------------------------
+
+
+---
+- name: Check and install Nginx or Apache (httpd) and database if not present
+  hosts: all
+  become: true
+  vars:
+    webserver_packages:
+      - name: nginx
+        package_manager: "{{ ansible_pkg_mgr }}"
+      - name: httpd
+        package_manager: "{{ ansible_pkg_mgr }}"
+    database_packages:
+      - name: mysql-server
+        package_manager: "{{ ansible_pkg_mgr }}"
+      - name: postgresql
+        package_manager: "{{ ansible_pkg_mgr }}"
+  tasks:
+    - name: Check if web server is installed
+      stat:
+        path: "/usr/sbin/{{ item.name }}"
+      register: web_server_installed
+      loop: "{{ webserver_packages }}"
+      when: "'Ubuntu' in ansible_distribution or 'CentOS' in ansible_distribution"
+
+    - name: Install web server
+      package:
+        name: "{{ item.name }}"
+        state: present
+      loop: "{{ webserver_packages }}"
+      when: not web_server_installed.results[item.index].stat.exists and ('Ubuntu' in ansible_distribution or 'CentOS' in ansible_distribution)
+
+    - name: Check if database is installed
+      stat:
+        path: "/usr/bin/{{ item.name }}"
+      register: database_installed
+      loop: "{{ database_packages }}"
+      when: "'Ubuntu' in ansible_distribution or 'CentOS' in ansible_distribution"
+
+    - name: Install database
+      package:
+        name: "{{ item.name }}"
+        state: present
+      loop: "{{ database_packages }}"
+      when: not database_installed.results[item.index].stat.exists and ('Ubuntu' in ansible_distribution or 'CentOS' in ansible_distribution)
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+
+---
+- name: Install Nginx or Apache and MySQL
+  hosts: your_ubuntu_host
+  become: yes
+  vars:
+    web_server: nginx
+    db_server: mysql-server
+  tasks:
+    - name: Check if web server is installed
+      shell: dpkg -l | grep -w {{ web_server }}
+      register: web_server_installed
+      ignore_errors: true
+    - name: Install web server if not installed
+      apt:
+        name: "{{ web_server }}"
+        state: present
+      when: web_server_installed.rc != 0
+    - name: Check if database server is installed
+      shell: dpkg -l | grep -w {{ db_server }}
+      register: db_server_installed
+      ignore_errors: true
+    - name: Install database server if not installed
+      apt:
+        name: "{{ db_server }}"
+        state: present
+      when: db_server_installed.rc != 0

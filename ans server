@@ -1,0 +1,172 @@
+---
+- name: Deploy MongoDB
+  hosts: all
+  become: yes
+
+  vars:
+    mongodb_version: "4.4"
+
+  tasks:
+    - name: Add MongoDB repository
+      yum_repository:
+        name: mongodb-org
+        description: MongoDB Repository
+        baseurl: "https://repo.mongodb.org/yum/redhat/7/mongodb-org/${mongodb_version}/x86_64/"
+        gpgcheck: yes
+        gpgkey: "https://www.mongodb.org/static/pgp/server-${mongodb_version}.asc"
+
+    - name: Install MongoDB
+      yum:
+        name:
+          - mongodb-org
+          - mongodb-org-server
+          - mongodb-org-shell
+          - mongodb-org-mongos
+          - mongodb-org-tools
+
+    - name: Start MongoDB service
+      systemd:
+        name: mongod
+        enabled: yes
+        state: started
+
+
+------------------------------------------------------------------------------------------------------------------------------
+---
+- name: Deploy MongoDB
+  hosts: all
+  become: yes
+
+  vars:
+    mongodb_version: "4.4"
+
+  tasks:
+    - name: Add MongoDB repository
+      apt_repository:
+        repo: "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/${mongodb_version} multiverse"
+        key_server: hkp://keyserver.ubuntu.com:80
+        key_id: "9DA31620334BD75D9DCB49F368818C72E52529D4"
+        state: present
+
+    - name: Install MongoDB
+      apt:
+        name:
+          - mongodb-org
+          - mongodb-org-server
+          - mongodb-org-shell
+          - mongodb-org-mongos
+          - mongodb-org-tools
+
+    - name: Start MongoDB service
+      systemd:
+        name: mongod
+        enabled: yes
+        state: started
+
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+---
+- name: Install Node.js server on CentOS
+  hosts: your_server_host
+  become: true
+  vars:
+    nodejs_version: "14.x" # Change to the desired Node.js version
+  tasks:
+    - name: Install EPEL repository
+      yum:
+        name: epel-release
+        state: present
+
+    - name: Install Node.js
+      yum:
+        name: "nodejs-{{ nodejs_version }}"
+        state: present
+
+    - name: Install pm2 process manager
+      npm:
+        name: pm2
+        global: yes
+
+    - name: Copy server.js file
+      copy:
+        src: /path/to/your/server.js
+        dest: /home/your_username/server.js
+
+    - name: Start the Node.js server
+      command: pm2 start /home/your_username/server.js --name "my_node_server"
+
+
+-------------------------------------------------------------------------------------------------------------------------
+
+---
+- name: Install Node.js
+  hosts: webservers
+  become: true
+  vars_files:
+    - vars.yml
+  tasks:
+    - name: Add Node.js repository
+      yum_repository:
+        name: nodesource
+        description: Node.js Packages for Enterprise Linux 7 - $basearch
+        baseurl: https://rpm.nodesource.com/pub_{{ node_version }}/
+        gpgcheck: yes
+        gpgkey: https://rpm.nodesource.com/pub_{{ node_version }}/pubkey.gpg
+        enabled: yes
+    - name: Install Node.js
+      yum:
+        name: nodejs
+        state: present
+
+
+------------------------------------------------------------------------------------------------------------------------------
+node_version: "14.x"
+
+---
+- name: Install Node.js
+  hosts: webservers
+  become: true
+  vars_files:
+    - vars.yml
+  tasks:
+    - name: Add Node.js repository
+      apt_repository:
+        repo: deb https://deb.nodesource.com/node_{{ node_version }} {{ ansible_distribution_release }} main
+        state: present
+        update_cache: yes
+        cache_valid_time: 3600
+        filename: nodesource.list
+        keyserver: hkp://keyserver.ubuntu.com:80
+        key_id: 1655A0AB68576280
+    - name: Install Node.js
+      apt:
+        name: nodejs
+        state: present
+
+
+
+
+
+---
+- name: Install Node.js
+  hosts: webservers
+  become: true
+  vars_files:
+    - vars.yml
+  tasks:
+    - name: Add Node.js repository
+      apt_repository:
+        repo: "deb https://deb.nodesource.com/node_{{ node_version }} focal main"
+        update_cache: yes
+        state: present
+        filename: nodesource
+        mode: 0644
+        keyserver: hkp://keyserver.ubuntu.com:80
+        key_id: "https://deb.nodesource.com/gpgkey/nodesource.gpg.key"
+    - name: Install Node.js
+      apt:
+        name: nodejs
+        state: present
+
+

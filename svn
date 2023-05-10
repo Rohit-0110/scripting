@@ -1,0 +1,73 @@
+sudo yum install subversion httpd
+
+sudo systemctl enable httpd
+sudo systemctl start httpd
+
+sudo yum install mod_dav_svn mod_ssl
+
+sudo mkdir /var/svn
+
+sudo svnadmin create /var/svn/myrepository
+
+sudo chown -R apache:apache /var/svn/myrepository
+
+sudo vim /etc/httpd/conf.d/subversion.conf
+
+
+<Location /svn>
+    DAV svn
+    SVNParentPath /var/svn
+    AuthType Basic
+    AuthName "Subversion Repository"
+    AuthUserFile /etc/httpd/conf.d/svn-auth-file
+    Require valid-user
+</Location>
+
+
+htpasswd -cm /etc/httpd/conf.d/svn-auth-file svnuser
+
+sudo chown apache:apache /etc/httpd/conf.d/svn-auth-file
+sudo chmod 644 /etc/httpd/conf.d/svn-auth-file
+
+sudo chcon -R -t httpd_sys_content_t /var/svn
+sudo chcon -R -t httpd_sys_rw_content_t /var/svn
+
+sudo firewall-cmd --permanent --add-service=http
+sudo firewall-cmd --reload
+
+sudo systemctl restart httpd
+
+
+
+--------------------------------------------------------------------------------------------
+
+Create a Subversion repository: If you haven't created a repository yet, you can create one using the svnadmin command. For example:
+
+sudo svnadmin create /var/svn/myrepository
+Checkout the repository: Create a working copy of the repository by checking it out. Go to the directory where you want to place your working copy and use the following command:
+
+svn co file:///var/svn/myrepository
+Add the file: Copy the file you want to add to the working copy directory. For example, if you have a file named example.txt in your current directory, use the following command to add it to the repository:
+
+cp example.txt /path/to/working/copy/myrepository/
+Navigate to the working copy directory: Change your current directory to the working copy of the repository where you copied the file:
+
+cd /path/to/working/copy/myrepository/
+Add the file to SVN: Use the svn add command to add the file to the repository:
+
+svn add example.txt
+Commit the changes: Use the svn commit command to commit the addition of the file to the repository. You will be prompted to provide a commit message:
+
+svn commit -m "Added example.txt file"
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+svn checkout <repository_url> /var/www/html/svn/myrepo
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+svnadmin verify /path/to/repository
+
+sudo chown -R apache:apache /var/svn/myrepo
+sudo chmod -R 775 /var/svn/myrepo
+

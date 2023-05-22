@@ -1,0 +1,61 @@
+from flask import Flask, render_template
+import requests
+from markupsafe import Markup
+
+
+app = Flask(__name__)
+
+@app.route('/')
+def fetch_and_render():
+    url = 'http://192.168.0.113/svn/first'  # Replace with your desired URL
+    auth = ('admin', '0110')  # Replace with your SVN authentication credentials
+
+    try:
+        response = requests.get(url, auth=auth)
+        content = response.text
+    except requests.exceptions.RequestException as e:
+        return f'Error fetching content: {str(e)}'
+
+    return render_template('one.html', content=content)
+
+@app.template_filter('safe_html')
+def safe_html_filter(content):
+    return Markup(content)
+
+if __name__ == '__main__':
+    app.run()
+    
+    
+*************************************
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Hello, World!</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body>
+
+  <div class="container mx-auto mt-5">
+
+    <h1 class="text-3xl font-bold text-center">{{ content | safe_html }}</h1><br>
+
+
+    <div class="flex justify-center">
+
+      <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        Button 1
+      </button>
+      <button class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded ml-2">
+        Button 2
+      </button>
+      <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded ml-2">
+        Button 3
+      </button>
+    </div>
+  </div>
+
+
+
+</body>
+</html>

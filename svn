@@ -71,3 +71,25 @@ svnadmin verify /path/to/repository
 sudo chown -R apache:apache /var/svn/myrepo
 sudo chmod -R 775 /var/svn/myrepo
 
+
+
+from flask import Flask, render_template_string
+import re
+
+app = Flask(__name__)
+
+def extract_anchor_text(html_text):
+    pattern = r'<a\b[^>]*>(.*?)</a>'
+    anchor_texts = re.findall(pattern, html_text)
+    return anchor_texts
+
+@app.route('/')
+def index():
+    html_text = '<a href="https://example.com">Link 1</a> <a href="https://example.org">Link 2</a>'
+    anchor_texts = extract_anchor_text(html_text)
+    anchor_text_string = '\n'.join(anchor_texts)  # Convert list to a string with newlines
+    return render_template_string('index.html', anchor_texts=anchor_text_string)
+
+if __name__ == '__main__':
+    app.run()
+

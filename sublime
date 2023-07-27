@@ -1,0 +1,15 @@
+sublime scheme edit:
+
+https://packagecontrol.io/packages/Github%20Color%20Theme
+
+file at location: sublime text/packages/
+
+preferences>setting
+>>
+{
+  "font_size": 12.2,
+  "font_face": "Courier",
+  "font_options": ["subpixel_antialias"],
+  "line_padding_bottom": 1,
+  "line_padding_top": 1
+}
